@@ -2,6 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 #[derive(Debug)]
 pub enum ParseError {
+    DeliberateFailure,
     WrongSingle(char, char),
     WrongChunk(String, String),
     ChoiceMismatch(Box<ParseError>, Box<ParseError>),
@@ -70,6 +71,11 @@ impl<T: Clone + 'static> Parser<T> {
             Ok(f(ast))
         })
     }
+
+    // おまけでAlternativeとしての要件。必ず失敗するパーサ。
+    pub fn empty() -> Self {
+        new(|_| Err(ParseError::DeliberateFailure))
+    }
 }
 
 // 特定の一文字をパースしてその文字を返すパーサ
@@ -84,7 +90,7 @@ impl Parser<char> {
         })
     }
 
-    pub fn chunk(expected: impl AsRef<str> + 'static) -> Parser<()> {
+    pub fn chunk(expected: impl AsRef<str> + 'static) -> Parser<String> {
         new(move |iter| {
             let mut found = vec![];
             for ex in expected.as_ref().chars() {
@@ -100,7 +106,7 @@ impl Parser<char> {
                     return Err(ParseError::IterationError);
                 }
             }
-            Ok(())
+            Ok(expected.as_ref().to_string())
         })
     }
 
@@ -118,15 +124,15 @@ impl Parser<char> {
 
 // 選択を表すコンビネータ
 impl<T: 'static> Parser<T> {
-    pub fn choice(p1: Self, p2: Self) -> Self {
+    pub fn choice(self, other: Self) -> Self {
         // INFO: Errのときだけ処理を続行する「?」演算子があればもっと簡潔に書ける？（でもiter_backupは無理かも）
         new(move |iter| {
             let iter_backup = iter.clone();
-            match (p1._parse)(iter) {
+            match (self._parse)(iter) {
                 Ok(res) => Ok(res),
                 Err(e1) => {
                     *iter = iter_backup;
-                    match (p2._parse)(iter) {
+                    match (other._parse)(iter) {
                         Ok(res) => Ok(res),
                         Err(e2) => Err(ParseError::ChoiceMismatch(Box::new(e1), Box::new(e2))),
                     }

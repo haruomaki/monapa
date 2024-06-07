@@ -3,7 +3,7 @@ use crate::parser::Parser;
 pub fn single(expected: char) -> Parser<char> {
     Parser::single(expected)
 }
-pub fn chunk(expected: impl AsRef<str> + 'static) -> Parser<()> {
+pub fn chunk(expected: impl AsRef<str> + 'static) -> Parser<String> {
     Parser::chunk(expected)
 }
 pub fn ascii_digit() -> Parser<char> {
@@ -27,6 +27,19 @@ pub fn whitespace() -> Parser<char> {
 
 pub fn option<T: Clone + 'static>(p: Parser<T>) -> Parser<Option<T>> {
     p.map(|ast| Some(ast)) | Parser::ret(None)
+}
+
+/// パーサのリストを受け取り、そのいずれかにマッチするかを調べるコンビネータ
+pub fn choice<T, I>(parsers: I) -> Parser<T>
+where
+    T: Clone + 'static,
+    I: IntoIterator,
+    I::IntoIter: DoubleEndedIterator<Item = Parser<T>>,
+{
+    parsers
+        .into_iter()
+        .rev()
+        .fold(Parser::<T>::empty(), |accum, p| p.choice(accum))
 }
 
 impl<T: Clone + 'static> Parser<T> {
