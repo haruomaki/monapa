@@ -11,6 +11,14 @@ pub enum ParseError {
     IterationError,
 }
 
+impl std::fmt::Display for ParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
+impl std::error::Error for ParseError {}
+
 pub type ParseResult<T> = Result<T, ParseError>;
 
 // パーサ定義を表す構造体。parseの引数に指定して（メンバ関数として呼び出して）使う。
