@@ -37,7 +37,7 @@ fn new<T>(_parse: impl Fn(&mut std::str::Chars) -> ParseResult<T> + 'static) -> 
 
 // parse関数
 impl<T: 'static> Parser<T> {
-    pub fn parse(self, input: impl AsRef<str>) -> ParseResult<T> {
+    pub fn parse(&self, input: impl AsRef<str>) -> ParseResult<T> {
         let mut iter = input.as_ref().chars();
         let ast = (self._parse)(&mut iter)?;
         if iter.next() == None {
