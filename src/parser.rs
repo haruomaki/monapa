@@ -1,5 +1,3 @@
-use std::{cell::RefCell, rc::Rc};
-
 #[derive(Debug)]
 pub enum ParseError {
     DeliberateFailure,
@@ -23,15 +21,14 @@ impl std::error::Error for ParseError {}
 pub type ParseResult<T> = Result<T, ParseError>;
 
 // パーサ定義を表す構造体。parseの引数に指定して（メンバ関数として呼び出して）使う。
-#[derive(Clone)]
 pub struct Parser<T> {
-    _parse: Rc<dyn Fn(&mut std::str::Chars) -> ParseResult<T>>,
+    _parse: Box<dyn Fn(&mut std::str::Chars) -> ParseResult<T>>,
 }
 
 // 内部だけで使う
 fn new<T>(_parse: impl Fn(&mut std::str::Chars) -> ParseResult<T> + 'static) -> Parser<T> {
     Parser {
-        _parse: Rc::new(_parse),
+        _parse: Box::new(_parse),
     }
 }
 
@@ -200,32 +197,5 @@ impl<T: 'static> Into<Parser<Vec<T>>> for Parser<T> {
             let ast = (self._parse)(iter)?;
             Ok(vec![ast])
         })
-    }
-}
-
-// impl<T> Parser<T> {
-//     pub fn recurse(source: impl Fn(Parser<T>) -> Parser<T>) -> Parser<T> {
-//         let weak_holder;
-//         let par = new(move |iter| {
-//             let par = weak_holder.borrow();
-//             let new_par = source(par);
-//             (new_par._parse)(iter)
-//         });
-//         weak_holder.replace(par);
-//         par
-//     }
-// }
-
-impl<T: Clone + Default + 'static> Parser<T> {
-    pub fn recurse(source: impl Fn(Parser<T>) -> Parser<T> + 'static) -> Parser<T> {
-        let weak_holder = Rc::new(RefCell::new(Parser::ret(T::default())));
-        let weak_holder2 = weak_holder.clone();
-        let par = new(move |iter| {
-            let par = weak_holder2.borrow().clone();
-            let new_par = source(par);
-            (new_par._parse)(iter)
-        });
-        weak_holder.replace(par.clone());
-        par
     }
 }
