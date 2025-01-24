@@ -3,23 +3,20 @@ use monapa::{pdo, Parser, *};
 #[allow(dead_code)]
 #[derive(Clone, Debug)]
 enum Node {
-    Paren(Box<Node>, Box<Node>),
-    Nil,
+    Paren(Vec<Node>),
 }
 
 fn start() -> Parser<Node> {
-    pdo!(
+    pdo! {
         single('(');
-        l <- start();
-        single(',');
-        r <- start();
+        parens <- start() * (0..);
         single(')');
-        return Node::Paren(Box::new(l), Box::new(r))
-    ) | pdo!(return Node::Nil)
+        return Node::Paren(parens)
+    }
 }
 
 fn main() {
     let parser = start();
-    let ast = parser.parse("((,),(,))").unwrap();
+    let ast = parser.parse("((()())())").unwrap();
     println!("{:?}", ast);
 }
