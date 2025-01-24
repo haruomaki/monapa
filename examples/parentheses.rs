@@ -1,5 +1,6 @@
 use monapa::{pdo, Parser, *};
 
+#[allow(dead_code)]
 #[derive(Clone, Debug)]
 enum Node {
     Paren(Box<Node>, Box<Node>),
@@ -19,6 +20,6 @@ fn start() -> Parser<Node> {
 
 fn main() {
     let parser = start();
-    let ast = parser.parse("((,),(,))");
+    let ast = parser.parse("((,),(,))").unwrap();
     println!("{:?}", ast);
 }
