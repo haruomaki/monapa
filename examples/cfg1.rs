@@ -1,4 +1,4 @@
-// Context free grammer
+// Context-free grammar
 // S -> aSb | ε
 
 use monapa::*;
