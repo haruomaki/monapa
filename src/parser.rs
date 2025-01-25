@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 #[derive(Debug)]
 pub enum ParseError {
     DeliberateFailure,
@@ -21,8 +23,9 @@ impl std::error::Error for ParseError {}
 pub type ParseResult<T> = Result<T, ParseError>;
 
 /// Structure representing a parser definition. Call the member function `parse`.
+#[derive(Clone)]
 pub struct Parser<T: Clone + 'static> {
-    _parse: Box<dyn Fn(&mut std::str::Chars) -> ParseResult<T>>,
+    _parse: Rc<dyn Fn(&mut std::str::Chars) -> ParseResult<T>>,
 }
 
 // For internal use only
@@ -30,7 +33,7 @@ fn new<T: Clone + 'static>(
     _parse: impl Fn(&mut std::str::Chars) -> ParseResult<T> + 'static,
 ) -> Parser<T> {
     Parser {
-        _parse: Box::new(_parse),
+        _parse: Rc::new(_parse),
     }
 }
 
