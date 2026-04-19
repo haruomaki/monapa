@@ -25,11 +25,6 @@ pub fn whitespace() -> Parser<char> {
     Parser::satisfy(char::is_whitespace)
 }
 
-// TODO: メソッドにする
-pub fn option<T: Clone + 'static>(p: Parser<T>) -> Parser<Option<T>> {
-    p.map(|ast| Some(ast)) | Parser::ret(None)
-}
-
 /// パーサのリストを受け取り、そのいずれかにマッチするかを調べるコンビネータ
 pub fn choice<T, I>(parsers: I) -> Parser<T>
 where
@@ -47,7 +42,8 @@ where
 pub fn sep_by<T: Clone, S: Clone>(term: Parser<T>, sep: Parser<S>) -> Parser<Vec<T>> {
     term.clone()
         .map(|head| vec![head])
-        .concat(sep.clone().then(term).repeat(None, None).skip(option(sep)))
+        .concat((sep.clone() & term) * ..)
+        .skip(sep.option())
         | Parser::ret(vec![])
 }
 

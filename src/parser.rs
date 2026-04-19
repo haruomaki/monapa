@@ -87,6 +87,12 @@ impl<T: Clone + 'static> Parser<T> {
         })
     }
 
+    // TODO: implが肥大化してきたので書く場所を整理したい
+    /// パーサーをオプション化する。成功したらSome(ast)、失敗したらNoneを返す。
+    pub fn option(self) -> Parser<Option<T>> {
+        self.map(Some) | Parser::ret(None)
+    }
+
     // おまけでAlternativeとしての要件。必ず失敗するパーサ。
     pub fn empty() -> Self {
         new(|_| Err(ParseError::DeliberateFailure))
