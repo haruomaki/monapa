@@ -156,20 +156,6 @@ impl<T: Clone + 'static> Parser<T> {
             }
         })
     }
-
-    // -------------
-    // TODO: カテゴリ未分類
-    // -------------
-
-    pub fn and<U: Clone + 'static, S: Clone + 'static>(self, rhs: Parser<S>) -> Parser<Vec<U>>
-    where
-        Parser<T>: Into<Parser<Vec<U>>>,
-        Parser<S>: Into<Parser<Vec<U>>>,
-    {
-        let lhs: Parser<Vec<U>> = self.into();
-        let rhs: Parser<Vec<U>> = rhs.into();
-        lhs.concat(rhs)
-    }
 }
 
 impl<T: Clone + 'static> Parser<Vec<T>> {

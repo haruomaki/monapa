@@ -25,29 +25,6 @@ impl<T: Clone + 'static, S: Clone + 'static> Shl<Parser<S>> for Parser<T> {
     }
 }
 
-// andと等価な演算子 &
-impl<T: Clone + 'static> BitAnd for Parser<T> {
-    // T & T -> Vec<T>
-    type Output = Parser<Vec<T>>;
-    fn bitand(self, rhs: Self) -> Parser<Vec<T>> {
-        self.and(rhs)
-    }
-}
-impl<T: Clone + 'static> BitAnd<Parser<T>> for Parser<Vec<T>> {
-    // Vec<T> & T -> Vec<T>
-    type Output = Parser<Vec<T>>;
-    fn bitand(self, rhs: Parser<T>) -> Parser<Vec<T>> {
-        self.and(rhs)
-    }
-}
-impl<T: Clone + 'static> BitAnd<Parser<Vec<T>>> for Parser<T> {
-    // T & Vec<T> -> Vec<T>
-    type Output = Parser<Vec<T>>;
-    fn bitand(self, rhs: Parser<Vec<T>>) -> Parser<Vec<T>> {
-        self.and(rhs)
-    }
-}
-
 // concatと等価な演算子 +
 impl<T: Clone + 'static> Add for Parser<Vec<T>> {
     type Output = Self;
