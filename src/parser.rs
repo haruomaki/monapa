@@ -70,6 +70,23 @@ impl<T: Clone + 'static> Parser<T> {
         })
     }
 
+    /// 一つ前の結果を破棄し、連接する。
+    pub fn then<S: Clone>(self, following: Parser<S>) -> Parser<S> {
+        new(move |iter| {
+            let _ast = (self._parse)(iter)?;
+            (following._parse)(iter)
+        })
+    }
+
+    /// 二つのパーサを連接して、一つ目の結果だけを返す
+    pub fn skip<S: Clone>(self, following: Parser<S>) -> Self {
+        new(move |iter| {
+            let ast = (self._parse)(iter)?;
+            let _following_ast = (following._parse)(iter)?;
+            Ok(ast)
+        })
+    }
+
     // おまけでAlternativeとしての要件。必ず失敗するパーサ。
     pub fn empty() -> Self {
         new(|_| Err(ParseError::DeliberateFailure))

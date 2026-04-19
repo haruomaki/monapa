@@ -25,6 +25,7 @@ pub fn whitespace() -> Parser<char> {
     Parser::satisfy(char::is_whitespace)
 }
 
+// TODO: メソッドにする
 pub fn option<T: Clone + 'static>(p: Parser<T>) -> Parser<Option<T>> {
     p.map(|ast| Some(ast)) | Parser::ret(None)
 }
@@ -44,23 +45,10 @@ where
 
 /// カンマ区切りなどをパースする
 pub fn sep_by<T: Clone, S: Clone>(term: Parser<T>, sep: Parser<S>) -> Parser<Vec<T>> {
-    term.clone().bind(move |head| {
-        let term = term.clone();
-        let sep = sep.clone();
-        sep.clone()
-            .bind(move |_| {
-                let term = term.clone();
-                term
-            })
-            .repeat(None, None)
-            .bind(move |rest| {
-                let head = head.clone();
-                option(sep.clone()).bind(move |_| {
-                    let v = vec![vec![head.clone()], rest.clone()].concat();
-                    Parser::ret(v)
-                })
-            })
-    }) | Parser::ret(vec![])
+    term.clone()
+        .map(|head| vec![head])
+        .concat(sep.clone().then(term).repeat(None, None).skip(option(sep)))
+        | Parser::ret(vec![])
 }
 
 // impl<T: Clone + 'static> Parser<T> {
