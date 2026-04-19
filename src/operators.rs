@@ -1,10 +1,9 @@
 use crate::parser::Parser;
 use std::ops::*;
 
-// choiceと等価の演算子 |
+// choiceと等価な演算子 |
 impl<T: Clone + 'static> BitOr for Parser<T> {
     type Output = Self;
-
     fn bitor(self, rhs: Self) -> Self {
         Parser::choice(self, rhs)
     }
@@ -26,7 +25,7 @@ impl<T: Clone + 'static, S: Clone + 'static> Shl<Parser<S>> for Parser<T> {
     }
 }
 
-// andと等価の演算子 &
+// andと等価な演算子 &
 impl<T: Clone + 'static> BitAnd for Parser<T> {
     // T & T -> Vec<T>
     type Output = Parser<Vec<T>>;
@@ -46,6 +45,14 @@ impl<T: Clone + 'static> BitAnd<Parser<Vec<T>>> for Parser<T> {
     type Output = Parser<Vec<T>>;
     fn bitand(self, rhs: Parser<Vec<T>>) -> Parser<Vec<T>> {
         self.and(rhs)
+    }
+}
+
+// concatと等価な演算子 +
+impl<T: Clone + 'static> Add for Parser<Vec<T>> {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self {
+        self.concat(rhs)
     }
 }
 
