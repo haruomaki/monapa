@@ -75,6 +75,11 @@ impl<T: Clone + 'static> Parser<T> {
         new(|_| Err(ParseError::DeliberateFailure))
     }
 
+    /// これもおまけ。Parser<()>に変換する。
+    pub fn void(self) -> Parser<()> {
+        self.bind(|_| Parser::ret(()))
+    }
+
     // `return` function
     pub fn ret(value: T) -> Self {
         new(move |_| Ok(value.clone()))
