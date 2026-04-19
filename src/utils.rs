@@ -42,8 +42,8 @@ where
 pub fn sep_by<T: Clone, S: Clone>(term: Parser<T>, sep: Parser<S>) -> Parser<Vec<T>> {
     term.clone()
         .map(|head| vec![head])
-        .concat((sep.clone() & term) * ..)
-        .skip(sep.option())
+        .concat((sep.clone() >> term) * ..)
+        << sep.option()
         | Parser::ret(vec![])
 }
 

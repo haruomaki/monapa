@@ -10,11 +10,19 @@ impl<T: Clone + 'static> BitOr for Parser<T> {
     }
 }
 
-// thenと等価の演算子 &
-impl<T: Clone + 'static, S: Clone + 'static> BitAnd<Parser<S>> for Parser<T> {
+// thenと等価な演算子 >>
+impl<T: Clone + 'static, S: Clone + 'static> Shr<Parser<S>> for Parser<T> {
     type Output = Parser<S>;
-    fn bitand(self, rhs: Parser<S>) -> Parser<S> {
+    fn shr(self, rhs: Parser<S>) -> Parser<S> {
         self.then(rhs)
+    }
+}
+
+// skipと等価な演算子 <<
+impl<T: Clone + 'static, S: Clone + 'static> Shl<Parser<S>> for Parser<T> {
+    type Output = Parser<T>;
+    fn shl(self, rhs: Parser<S>) -> Parser<T> {
+        self.skip(rhs)
     }
 }
 
