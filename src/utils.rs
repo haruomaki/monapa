@@ -42,6 +42,27 @@ where
         .fold(Parser::<T>::empty(), |accum, p| p.choice(accum))
 }
 
+/// カンマ区切りなどをパースする
+pub fn sep_by<T: Clone, S: Clone>(term: Parser<T>, sep: Parser<S>) -> Parser<Vec<T>> {
+    term.clone().bind(move |head| {
+        let term = term.clone();
+        let sep = sep.clone();
+        sep.clone()
+            .bind(move |_| {
+                let term = term.clone();
+                term
+            })
+            .repeat(None, None)
+            .bind(move |rest| {
+                let head = head.clone();
+                option(sep.clone()).bind(move |_| {
+                    let v = vec![vec![head.clone()], rest.clone()].concat();
+                    Parser::ret(v)
+                })
+            })
+    }) | Parser::ret(vec![])
+}
+
 // impl<T: Clone + 'static> Parser<T> {
 //     pub fn separated_by<S: Clone + 'static>(self, p: Parser<S>) -> Parser<Vec<T>> {
 //         self.bind(move |head| {
