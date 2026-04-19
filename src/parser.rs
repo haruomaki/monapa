@@ -50,10 +50,15 @@ impl<T: Clone + 'static> Parser<T> {
     }
 
     // ------------------------------
-    // Monad functionality
+    // モナド機能
     // ------------------------------
 
-    // モナドのbind関数。連接を表す
+    /// 値をパーサーに持ち上げる（`pure` / `return`）
+    pub fn ret(value: T) -> Self {
+        new(move |_| Ok(value.clone()))
+    }
+
+    /// モナドの結合演算。前のパース結果を使って次のパーサーを決定する
     pub fn bind<S: Clone + 'static, F: Fn(T) -> Parser<S> + 'static>(self, f: F) -> Parser<S> {
         new(move |iter| {
             let ast = (self._parse)(iter)?;
@@ -62,13 +67,24 @@ impl<T: Clone + 'static> Parser<T> {
         })
     }
 
-    // map
+    /// パーサーの結果を変換する（関手の `fmap`）
     pub fn map<S: Clone + 'static, F: Fn(T) -> S + 'static>(self, f: F) -> Parser<S> {
         new(move |iter| {
             let ast = (self._parse)(iter)?;
             Ok(f(ast))
         })
     }
+
+    /// おまけでAlternativeとしての要件。必ず失敗するパーサ
+    pub fn empty() -> Self {
+        new(|_| Err(ParseError::DeliberateFailure))
+    }
+
+    // -------------
+    // 連接
+    // -------------
+
+    // TODO: andはここ？（タプルを返すなら）
 
     /// 一つ前の結果を破棄し、連接する。
     pub fn then<S: Clone>(self, following: Parser<S>) -> Parser<S> {
@@ -87,28 +103,11 @@ impl<T: Clone + 'static> Parser<T> {
         })
     }
 
-    // TODO: implが肥大化してきたので書く場所を整理したい
-    /// パーサーをオプション化する。成功したらSome(ast)、失敗したらNoneを返す。
-    pub fn option(self) -> Parser<Option<T>> {
-        self.map(Some) | Parser::ret(None)
-    }
+    // -------------
+    // 選択
+    // -------------
 
-    // おまけでAlternativeとしての要件。必ず失敗するパーサ。
-    pub fn empty() -> Self {
-        new(|_| Err(ParseError::DeliberateFailure))
-    }
-
-    /// これもおまけ。Parser<()>に変換する。
-    pub fn void(self) -> Parser<()> {
-        self.bind(|_| Parser::ret(()))
-    }
-
-    // `return` function
-    pub fn ret(value: T) -> Self {
-        new(move |_| Ok(value.clone()))
-    }
-
-    // 選択を表すコンビネータ
+    /// 選択を表すコンビネータ
     pub fn choice(self, other: Self) -> Self {
         // INFO: Errのときだけ処理を続行する「?」演算子があればもっと簡潔に書ける？（でもiter_backupは無理かも）
         new(move |iter| {
@@ -126,13 +125,17 @@ impl<T: Clone + 'static> Parser<T> {
         })
     }
 
-    // 繰り返しを表すコンビネータ
+    // -------------
+    // 繰り返し
+    // -------------
+
+    /// 繰り返しを表すコンビネータ
     pub fn repeat(self, min: Option<usize>, max: Option<usize>) -> Parser<Vec<T>> {
         new(move |iter| {
-            let mut count = 1;
+            let mut count = 0;
             let mut asts = vec![];
             while match max {
-                Some(v) => count <= v,
+                Some(v) => count < v,
                 None => true,
             } {
                 let iter_backup = iter.clone();
@@ -153,6 +156,10 @@ impl<T: Clone + 'static> Parser<T> {
             }
         })
     }
+
+    // -------------
+    // TODO: カテゴリ未分類
+    // -------------
 
     pub fn and<U: Clone + 'static, S: Clone + 'static>(self, rhs: Parser<S>) -> Parser<Vec<U>>
     where
@@ -229,5 +236,21 @@ impl Parser<()> {
             },
             None => Err(ParseError::IterationError),
         })
+    }
+}
+
+// ===============================
+// 必須ではないが便利なメソッド
+// ===============================
+
+impl<T: Clone + 'static> Parser<T> {
+    /// パーサーをオプション化する。成功したらSome(ast)、失敗したらNoneを返す。
+    pub fn option(self) -> Parser<Option<T>> {
+        self.map(Some) | Parser::ret(None)
+    }
+
+    /// Parser<()>に変換する。
+    pub fn void(self) -> Parser<()> {
+        self.bind(|_| Parser::ret(()))
     }
 }
