@@ -84,12 +84,15 @@ impl<T: Clone + 'static> Parser<T> {
     // 連接
     // -------------
 
-    // TODO: andはここ？（タプルを返すなら）
+    /// 二つのパーサを連接して、結果をタプルとして返す
+    pub fn and<S: Clone>(self, following: Parser<S>) -> Parser<(T, S)> {
+        new(move |iter| Ok(((self._parse)(iter)?, (following._parse)(iter)?)))
+    }
 
     /// 一つ前の結果を破棄し、連接する。
     pub fn then<S: Clone>(self, following: Parser<S>) -> Parser<S> {
         new(move |iter| {
-            let _ast = (self._parse)(iter)?;
+            (self._parse)(iter)?;
             (following._parse)(iter)
         })
     }
@@ -108,8 +111,8 @@ impl<T: Clone + 'static> Parser<T> {
     // -------------
 
     /// 選択を表すコンビネータ
-    pub fn choice(self, other: Self) -> Self {
-        // INFO: Errのときだけ処理を続行する「?」演算子があればもっと簡潔に書ける？（でもiter_backupは無理かも）
+    pub fn or(self, other: Self) -> Self {
+        // Errのときだけ処理を続行する「?」演算子があればもっと簡潔に書ける？（でもiter_backupは無理かも）
         new(move |iter| {
             let iter_backup = iter.clone();
             match (self._parse)(iter) {

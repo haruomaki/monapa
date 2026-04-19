@@ -35,7 +35,7 @@ where
     parsers
         .into_iter()
         .rev()
-        .fold(Parser::<T>::empty(), |accum, p| p.choice(accum))
+        .fold(Parser::<T>::empty(), |accum, p| p.or(accum))
 }
 
 // https://blog-dry.com/entry/2020/12/25/130250#do-記法
