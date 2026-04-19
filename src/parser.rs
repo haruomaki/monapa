@@ -253,4 +253,13 @@ impl<T: Clone + 'static> Parser<T> {
     pub fn void(self) -> Parser<()> {
         self.bind(|_| Parser::ret(()))
     }
+
+    /// 区切り文字で区切られた0回以上の列をパースする
+    pub fn sep_by<S: Clone + 'static>(self, sep: Parser<S>) -> Parser<Vec<T>> {
+        self.clone()
+            .map(|head| vec![head])
+            .concat((sep.clone() >> self) * ..)
+            .skip(sep.option())
+            | Parser::ret(vec![])
+    }
 }

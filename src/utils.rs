@@ -38,25 +38,6 @@ where
         .fold(Parser::<T>::empty(), |accum, p| p.choice(accum))
 }
 
-/// カンマ区切りなどをパースする
-pub fn sep_by<T: Clone, S: Clone>(term: Parser<T>, sep: Parser<S>) -> Parser<Vec<T>> {
-    term.clone()
-        .map(|head| vec![head])
-        .concat((sep.clone() >> term) * ..)
-        .skip(sep.option())
-        | Parser::ret(vec![])
-}
-
-// impl<T: Clone + 'static> Parser<T> {
-//     pub fn separated_by<S: Clone + 'static>(self, p: Parser<S>) -> Parser<Vec<T>> {
-//         self.bind(move |head| {
-//             let slf = &self;
-//             let tail_parser = p.bind(move |_| *slf) * (..);
-//             tail_parser.bind(move |tail| Parser::ret(vec![vec![head.clone()], tail].concat()))
-//         })
-//     }
-// }
-
 // https://blog-dry.com/entry/2020/12/25/130250#do-記法
 // https://zenn.dev/heppoko_quasar/articles/df8e0aed2c088e
 #[macro_export]
