@@ -159,6 +159,14 @@ impl<T: Clone + 'static> Parser<T> {
             }
         })
     }
+
+    // -------------
+    // 遅延評価
+    // -------------
+
+    pub fn lazy(f: impl Fn() -> Parser<T> + 'static) -> Self {
+        new(move |iter| (f()._parse)(iter))
+    }
 }
 
 impl<T: Clone + 'static> Parser<Vec<T>> {

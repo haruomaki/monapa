@@ -81,3 +81,11 @@ macro_rules! pdo_with_env {
         $e
     };
 }
+
+/// 遅延評価を書くマクロ
+#[macro_export]
+macro_rules! lazy {
+    ($name:ident) => {
+        Parser::lazy(|| $name())
+    };
+}
