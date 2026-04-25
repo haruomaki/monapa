@@ -75,7 +75,8 @@ impl<T: Clone + 'static> Parser<T> {
         })
     }
 
-    /// おまけでAlternativeとしての要件。必ず失敗するパーサ
+    // おまけでAlternativeとしての要件。
+    /// 必ず失敗するパーサ。選択の単位元として使える
     pub fn empty() -> Self {
         new(|_| Err(ParseError::DeliberateFailure))
     }
@@ -251,12 +252,20 @@ impl<T: Clone + 'static> Parser<T> {
         self.bind(|_| Parser::ret(()))
     }
 
-    /// 区切り文字で区切られた0回以上の列をパースする
+    /// 区切り文字で区切られた0回以上の列をパースする（末尾カンマ許容）
     pub fn sep_by<S: Clone + 'static>(self, sep: Parser<S>) -> Parser<Vec<T>> {
         self.clone()
             .map(|head| vec![head])
             .concat((sep.clone() >> self) * ..)
             .skip(sep.option())
+            | Parser::ret(vec![])
+    }
+
+    /// 区切り文字で区切られた0回以上の列をパースする（末尾カンマ禁止）
+    pub fn sep_by_strict<S: Clone + 'static>(self, sep: Parser<S>) -> Parser<Vec<T>> {
+        self.clone()
+            .map(|head| vec![head])
+            .concat((sep.clone() >> self) * ..)
             | Parser::ret(vec![])
     }
 }

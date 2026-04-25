@@ -21,8 +21,13 @@ pub fn alphabetic() -> Parser<char> {
 pub fn alphanumeric() -> Parser<char> {
     Parser::satisfy(char::is_alphanumeric)
 }
+/// 空白を一文字だけ消費するパーサ
 pub fn whitespace() -> Parser<char> {
     Parser::satisfy(char::is_whitespace)
+}
+/// 空白を消費するパーサ
+pub fn ws() -> Parser<()> {
+    (whitespace() * ..).void()
 }
 
 /// パーサのリストを受け取り、そのいずれかにマッチするかを調べるコンビネータ
@@ -32,10 +37,11 @@ where
     I: IntoIterator,
     I::IntoIter: DoubleEndedIterator<Item = Parser<T>>,
 {
+    // 入力: [a, b, c]
+    // 出力: ((empty.or(a)).or(b)).or(c)
     parsers
         .into_iter()
-        .rev()
-        .fold(Parser::<T>::empty(), |accum, p| p.or(accum))
+        .fold(Parser::<T>::empty(), |accum, p| accum.or(p))
 }
 
 // https://blog-dry.com/entry/2020/12/25/130250#do-記法
