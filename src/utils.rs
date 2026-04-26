@@ -1,10 +1,16 @@
 use crate::parser::Parser;
 
+/// 特定の一文字を受理する
 pub fn single(expected: char) -> Parser<char> {
     Parser::single(expected)
 }
+/// 特定の文字列を受理する
 pub fn chunk(expected: impl AsRef<str> + 'static) -> Parser<String> {
     Parser::chunk(expected)
+}
+/// 残りの入力を全部Stringにして受理する
+pub fn remnant() -> Parser<String> {
+    Parser::remnant()
 }
 pub fn ascii_digit() -> Parser<char> {
     Parser::satisfy(|c| char::is_ascii_digit(&c))
@@ -28,6 +34,11 @@ pub fn whitespace() -> Parser<char> {
 /// 空白を消費するパーサ
 pub fn ws() -> Parser<()> {
     (whitespace() * ..).void()
+}
+
+/// 指定の文字が出てくるまで読み込む
+pub fn until(end: char) -> Parser<String> {
+    (Parser::satisfy(move |c| c != end) * (..) << single(end)).map(|v| String::from_iter(v))
 }
 
 /// パーサのリストを受け取り、そのいずれかにマッチするかを調べるコンビネータ

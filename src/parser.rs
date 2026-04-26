@@ -194,7 +194,7 @@ impl Parser<()> {
     // Character parsing operations
     // ------------------------------
 
-    // 特定の一文字をパースしてその文字を返すパーサ
+    /// 特定の一文字を受理するパーサ
     pub fn single(expected: char) -> Parser<char> {
         new(move |iter| match iter.next() {
             Some(c) => match c == expected {
@@ -205,6 +205,7 @@ impl Parser<()> {
         })
     }
 
+    /// 特定の文字列を受理するパーサ
     pub fn chunk(expected: impl AsRef<str> + 'static) -> Parser<String> {
         new(move |iter| {
             let mut found = vec![];
@@ -234,6 +235,11 @@ impl Parser<()> {
             },
             None => Err(ParseError::IterationError),
         })
+    }
+
+    /// 残りの入力を全部Stringにして受理する
+    pub fn remnant() -> Parser<String> {
+        new(move |iter| Ok(iter.collect()))
     }
 }
 
