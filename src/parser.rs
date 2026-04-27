@@ -85,6 +85,11 @@ impl<T: Clone + 'static> Parser<T> {
     // 連接
     // -------------
 
+    /// パースに成功したら指定の値を返す
+    pub fn to<S: Clone>(self, v: S) -> Parser<S> {
+        self.then(Parser::ret(v))
+    }
+
     /// 二つのパーサを連接して、結果をタプルとして返す
     pub fn and<S: Clone>(self, following: Parser<S>) -> Parser<(T, S)> {
         new(move |iter| Ok(((self._parse)(iter)?, (following._parse)(iter)?)))
